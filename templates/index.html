@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Resume Checker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        /* CampusCogni theme with pure black background */
+        .gradient-bg {
+            background: #000000;
+        }
+
+        /* Enhanced 3D wave decorative element */
+        .abstract-shape {
+            position: absolute;
+            right: 0;
+            top: 10%;
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(60deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            mask-image: url('data:image/svg+xml,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path d="M40,-40C51.9,-26.5,61.3,-13.3,63.3,1.9C65.2,17.2,59.7,34.3,47.8,45.7C35.8,57,17.9,62.5,1.7,60.8C-14.4,59.1,-28.9,50.2,-40.8,38.8C-52.7,27.4,-62,13.7,-63.2,-1.2C-64.4,-16.1,-57.4,-32.2,-45.5,-45.7C-33.5,-59.2,-16.8,-70,0,-70C16.7,-70,33.5,-59.2,40,-40Z" transform="translate(100 100)"/></svg>');
+            animation: morphWave 20s ease-in-out infinite;
+            z-index: 0;
+            opacity: 0.15;
+        }
+
+        .abstract-shape-2 {
+            position: absolute;
+            left: 5%;
+            top: 40%;
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(-60deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
+            mask-image: url('data:image/svg+xml,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path d="M47.7,-57.2C62,-47.3,74.2,-32.7,78.1,-15.7C82,1.3,77.8,20.6,67.8,35.8C57.8,51,42.1,62.1,24.8,67.1C7.4,72,-11.5,70.8,-27.9,63.9C-44.3,57,-58.1,44.4,-65.3,28.7C-72.4,13,-72.9,-5.9,-66.1,-21.4C-59.3,-37,-45.3,-49.2,-31,-56.2C-16.7,-63.2,-2.1,-65,13.8,-61.8C29.7,-58.7,45.3,-50.7,47.7,-57.2Z" transform="translate(100 100)"/></svg>');
+            animation: morphWave 15s ease-in-out infinite alternate;
+            z-index: 0;
+            opacity: 0.1;
+        }
+
+        @keyframes morphWave {
+            0% {
+                transform: rotate(0deg) scale(1);
+                filter: blur(10px);
+            }
+            50% {
+                transform: rotate(180deg) scale(1.1);
+                filter: blur(20px);
+            }
+            100% {
+                transform: rotate(360deg) scale(1);
+                filter: blur(10px);
+            }
+        }
+
+        /* Improved score circle with modern aesthetics */
+        .score-circle {
+            filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.25));
+            transition: transform 0.3s ease;
+        }
+        
+        .score-circle:hover {
+            transform: scale(1.02);
+        }
+
+        /* Enhanced glass morphism effect */
+        .glass {
+            background: rgba(15, 23, 42, 0.75);
+            box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px 0 rgba(15, 23, 42, 0.35);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+
+        /* Enhanced Professional button styling */
+        .fancy-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+            color: #fff;
+            box-shadow: 0 4px 12px 0 rgba(59, 130, 246, 0.25);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .fancy-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.2) 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.2) 75%,
+                transparent 100%
+            );
+            transition: all 0.6s ease;
+        }
+
+        .fancy-btn:hover::before {
+            left: 100%;
+        }
+
+        .fancy-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .fancy-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .fancy-btn:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 8px 20px 0 rgba(59, 130, 246, 0.35);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .fancy-btn:hover::after {
+            opacity: 1;
+        }
+
+        .fancy-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 8px 0 rgba(59, 130, 246, 0.25);
+        }
+
+        .fancy-btn:disabled {
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .fancy-btn-secondary {
+            background: rgba(99, 102, 241, 0.1);
+            color: #e0e7ff;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .fancy-btn-secondary:hover {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Enhanced input styling */
+        .input-glass {
+            background: rgba(15, 23, 42, 0.9);
+            color: #e0e7ff;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .input-glass:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        .input-glass:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+        }
+
+        /* Keyword tags styling */
+        .keyword-tag {
+            transition: all 0.3s ease;
+        }
+
+        .keyword-tag:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px 0 rgba(99, 102, 241, 0.2);
+        }
+
+        /* Loading animation enhancement */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-spinner {
+            border-top-color: #6366f1;
+            animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div class="min-h-screen relative overflow-hidden gradient-bg">
+        <div class="abstract-shape"></div>
+        <div class="abstract-shape-2"></div>
+        <!-- Header -->
+        <header class="fixed w-full top-0 z-50 bg-black/80 border-b border-indigo-500/10 glass">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-20">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <h1 class="text-2xl font-extrabold text-white tracking-wide drop-shadow">ATS Resume Checker</h1>
+                    </div>
+                    <button onclick="scrollToTop()" class="fancy-btn group px-6 py-2.5 rounded-xl font-medium focus:outline-none flex items-center space-x-2">
+                        <span>Back to Top</span>
+                        <svg class="w-4 h-4 transform transition-transform group-hover:-translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-16">
+                <!-- Left Column - Main Content -->
+                <div class="lg:col-span-2">
+                    <!-- Hero Section -->
+                    <div class="mt-24 mb-16">
+                        <div class="inline-block glass text-white/90 px-6 py-3 rounded-full text-base mb-8 shadow-lg backdrop-blur-xl">
+                            <span class="font-semibold">
+                                ✨ Introducing CampusCogni ATS ✨
+                            </span>
+                        </div>
+                        <h2 class="text-7xl lg:text-8xl font-extrabold mb-8 leading-tight tracking-tight">
+                            <span class="text-white">RESUME</span><br>
+                            <span class="text-white/75">REIMAGINED</span>
+                        </h2>
+                        <p class="text-2xl text-indigo-200/90 mb-12 max-w-2xl leading-relaxed font-light">
+                            Connect your resume with ATS systems through our intelligent platform designed for the modern job search landscape.
+                        </p>
+                    </div>
+
+                    <!-- Mode Selection -->
+                    <div class="mb-12">
+                        <div class="inline-flex p-2 glass rounded-2xl shadow-lg">
+                            <button id="overallBtn" onclick="setMode('overall')" 
+                                    class="relative fancy-btn px-10 py-4 rounded-xl font-semibold text-lg focus:outline-none group overflow-hidden">
+                                <span class="relative z-10 flex items-center space-x-3">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                    <span>Overall ATS Check</span>
+                                    <svg class="w-5 h-5 transform transition-transform group-hover:translate-x-1 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </span>
+                            </button>
+                            <button id="jobSpecificBtn" onclick="setMode('job-specific')" 
+                                    class="glass px-10 py-4 rounded-xl font-semibold text-lg text-indigo-200 hover:text-white border border-indigo-400/30 hover:border-indigo-400/60 focus:outline-none transition-all duration-300 group ml-2">
+                                <span class="flex items-center space-x-3">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                    <span>Job-Specific Check</span>
+                                    <svg class="w-5 h-5 transform transition-transform group-hover:translate-x-1 opacity-0 group-hover:opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Job Description Upload (Hidden by default) -->
+                    <div id="jobDescriptionSection" class="mb-8 hidden">
+                        <label class="block text-base font-semibold text-indigo-300 mb-2">
+                            Job Description
+                        </label>
+                        <textarea id="jobDescription" 
+                                  class="w-full h-36 px-4 py-3 input-glass rounded-xl text-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                  placeholder="Paste the job description here..."></textarea>
+                    </div>
+
+                    <!-- Upload Section -->
+                    <div class="glass rounded-3xl border-2 border-dashed border-indigo-500/20 p-14 text-center mb-10 hover:border-indigo-400/40 transition-all duration-300 shadow-lg group">
+                        <div class="mb-8 relative">
+                            <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                            <svg class="mx-auto h-24 w-24 text-indigo-400 relative transform transition-transform duration-300 group-hover:scale-110" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+                        <h3 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-indigo-200 mb-4">Upload your resume</h3>
+                        <p class="text-indigo-200/90 mb-8 text-xl font-light">PDF files only, up to 10MB</p>
+                        <input type="file" id="resumeFile" accept=".pdf" class="hidden" onchange="handleFileSelect(event)">
+                        <button onclick="document.getElementById('resumeFile').click()" 
+                                class="fancy-btn group px-10 py-5 rounded-xl font-bold text-xl focus:outline-none inline-flex items-center space-x-3">
+                            <span>Choose File</span>
+                            <svg class="w-6 h-6 transform transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </button>
+                        <div id="fileInfo" class="mt-8 hidden animate-fade-in">
+                            <p class="text-indigo-200/90">Selected: <span id="fileName" class="text-white font-semibold"></span></p>
+                        </div>
+                    </div>
+
+                    <!-- Analyze Button -->
+                    <div class="text-center mb-10">
+                        <button id="analyzeBtn" onclick="analyzeResume()" disabled
+                                class="glass px-14 py-5 rounded-xl font-bold text-xl text-indigo-400 cursor-not-allowed">
+                            Upload a resume to analyze
+                        </button>
+                    </div>
+
+                    <!-- Privacy Notice -->
+                    <div class="text-center text-indigo-300">
+                        <p class="flex items-center justify-center gap-2">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                            </svg>
+                            Your resume is processed securely and not stored on our servers
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right Column - Results -->
+                <div class="lg:col-span-1">
+                                        <!-- Results Panel -->
+                    <div id="resultsPanel" class="glass rounded-3xl p-10 hidden border border-indigo-500/30 shadow-lg transform transition-all duration-500 hover:scale-[1.02]">
+                        <div class="flex items-center justify-between mb-8">
+                            <h3 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-indigo-200">Analysis Results</h3>
+                            <div class="flex items-center space-x-2 text-indigo-300 text-sm">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                <span>Real-time Analysis</span>
+                            </div>
+                        </div>
+                        <!-- Score Circle -->
+                        <div class="text-center mb-12 relative">
+                            <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-blue-500 blur-3xl opacity-20"></div>
+                            <div class="relative inline-flex items-center justify-center w-40 h-40 score-circle">
+                                <svg class="w-40 h-40 transform -rotate-90">
+                                    <circle cx="80" cy="80" r="70" stroke="#6366f1" stroke-width="12" fill="none" opacity="0.2"/>
+                                    <circle id="scoreCircle" cx="80" cy="80" r="70" stroke="url(#gradient)" stroke-width="12" 
+                                            fill="none" stroke-linecap="round" stroke-dasharray="439.82" stroke-dashoffset="439.82"/>
+                                    <defs>
+                                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" style="stop-color: #6366f1"/>
+                                            <stop offset="100%" style="stop-color: #3b82f6"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span id="scoreText" class="text-5xl font-extrabold text-white mb-1">0</span>
+                                    <span class="text-indigo-200 text-sm font-medium">Score</span>
+                                </div>
+                            </div>
+                            <p class="text-indigo-200 mt-4 text-xl font-semibold relative">ATS Compatibility Score</p>
+                        </div>
+
+                        <!-- Keywords -->
+                        <div class="mb-10">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-white text-xl flex items-center space-x-2">
+                                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>Matched Keywords</span>
+                                </h4>
+                                <span class="text-sm text-indigo-300">Found in your resume</span>
+                            </div>
+                            <div id="matchedKeywords" class="flex flex-wrap gap-3">
+                                <!-- Keywords will be inserted here -->
+                            </div>
+                        </div>
+
+                        <div class="mb-10">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-white text-xl flex items-center space-x-2">
+                                    <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    <span>Missing Keywords</span>
+                                </h4>
+                                <span class="text-sm text-indigo-300">Consider adding these</span>
+                            </div>
+                            <div id="missingKeywords" class="flex flex-wrap gap-3">
+                                <!-- Keywords will be inserted here -->
+                            </div>
+                        </div>
+
+                        <!-- Suggestions in a new enhanced section -->
+                        <div class="mt-12 -mx-10 -mb-10 bg-gradient-to-b from-indigo-900/20 to-transparent p-10 rounded-b-3xl border-t border-indigo-500/20">
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-bold text-white text-xl">AI-Powered Suggestions</h4>
+                                </div>
+                                <span class="text-sm text-indigo-300 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    Real-time recommendations
+                                </span>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl"></div>
+                                <div class="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl"></div>
+                                <div id="suggestions" class="relative bg-indigo-500/5 rounded-xl p-6 backdrop-blur-sm border border-indigo-500/10">
+                                    <div class="text-indigo-200 leading-relaxed text-lg space-y-4">
+                                        <!-- Suggestions will be inserted here -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-6 flex justify-end">
+                                <button class="fancy-btn-secondary px-4 py-2 rounded-lg text-sm flex items-center space-x-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                                    </svg>
+                                    <span>Save Suggestions</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="loadingPanel" class="glass rounded-3xl p-10 hidden border border-indigo-500/30 shadow-lg">
+                        <div class="text-center">
+                            <div class="animate-spin rounded-full h-14 w-14 border-b-2 border-indigo-400 mx-auto mb-7"></div>
+                            <p class="text-indigo-200 text-xl">Analyzing your resume...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'overall';
+        let selectedFile = null;
+
+        function setMode(mode) {
+            currentMode = mode;
+            const overallBtn = document.getElementById('overallBtn');
+            const jobSpecificBtn = document.getElementById('jobSpecificBtn');
+            const jobDescSection = document.getElementById('jobDescriptionSection');
+            if (mode === 'overall') {
+                overallBtn.className = 'fancy-btn px-10 py-4 rounded-xl font-semibold text-lg focus:outline-none';
+                jobSpecificBtn.className = 'glass px-10 py-4 rounded-xl font-semibold text-lg text-indigo-200 border border-indigo-400 focus:outline-none';
+                jobDescSection.classList.add('hidden');
+            } else {
+                overallBtn.className = 'glass px-10 py-4 rounded-xl font-semibold text-lg text-indigo-200 border border-indigo-400 focus:outline-none';
+                jobSpecificBtn.className = 'fancy-btn px-10 py-4 rounded-xl font-semibold text-lg focus:outline-none';
+                jobDescSection.classList.remove('hidden');
+            }
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileInfo').classList.remove('hidden');
+                const analyzeBtn = document.getElementById('analyzeBtn');
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = 'Analyze Resume';
+                analyzeBtn.className = 'fancy-btn px-14 py-5 rounded-xl font-bold text-xl focus:outline-none cursor-pointer';
+            }
+        }
+
+        async function analyzeResume() {
+            if (!selectedFile) return;
+
+            // Show loading
+            document.getElementById('resultsPanel').classList.add('hidden');
+            document.getElementById('loadingPanel').classList.remove('hidden');
+
+            const formData = new FormData();
+            formData.append('resume', selectedFile);
+            formData.append('mode', currentMode);
+            
+            if (currentMode === 'job-specific') {
+                const jobDesc = document.getElementById('jobDescription').value;
+                if (!jobDesc.trim()) {
+                    alert('Please enter a job description for job-specific analysis.');
+                    document.getElementById('loadingPanel').classList.add('hidden');
+                    return;
+                }
+                formData.append('job_description', jobDesc);
+            }
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    displayResults(result);
+                } else {
+                    alert(result.error || 'Analysis failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Analysis error:', error);
+                alert('Network error. Please try again.');
+            } finally {
+                document.getElementById('loadingPanel').classList.add('hidden');
+            }
+        }
+
+        function displayResults(result) {
+            // Update score circle
+            const score = result.ats_score;
+            const circumference = 2 * Math.PI * 64; // Updated for larger circle
+            const offset = circumference - (score / 100) * circumference;
+            document.getElementById('scoreCircle').style.strokeDashoffset = offset;
+            document.getElementById('scoreText').textContent = score;
+            // Update keywords with modern styling
+            const matchedContainer = document.getElementById('matchedKeywords');
+            const missingContainer = document.getElementById('missingKeywords');
+            matchedContainer.innerHTML = result.matched_keywords.map(keyword => 
+                `<span class="px-4 py-2 bg-indigo-700/80 text-indigo-100 text-base rounded-xl border border-indigo-400 shadow">${keyword}</span>`
+            ).join('');
+            missingContainer.innerHTML = result.missing_keywords.slice(0, 10).map(keyword => 
+                `<span class="px-4 py-2 bg-pink-900/80 text-pink-200 text-base rounded-xl border border-pink-400 shadow">${keyword}</span>`
+            ).join('');
+            // Update suggestions
+            document.getElementById('suggestions').innerHTML = result.suggestions.replace(/\n/g, '<br>');
+            // Show results
+            document.getElementById('resultsPanel').classList.remove('hidden');
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
