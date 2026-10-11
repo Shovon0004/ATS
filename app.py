@@ -17,7 +17,7 @@ CORS(app)
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-GROQ_MODEL = "llama-3.1-8b-instant"
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-20b")
 
 class AIAnalysisError(Exception):
     """Raised when the AI provider cannot produce a usable analysis."""
