@@ -12,7 +12,8 @@ CORS(app)
 
 # Configuration
 
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 def extract_text_from_pdf(pdf_file):
     """Extract text from PDF using PyPDF2"""
@@ -34,6 +35,10 @@ def extract_text_from_pdf(pdf_file):
 
 def analyze_with_gemini(resume_text, mode="overall", job_description=""):
     """Analyze resume using Gemini AI"""
+
+    if not GEMINI_API_KEY:
+        print("Gemini API key is not configured. Set the GEMINI_API_KEY environment variable.")
+        return None
     
     if mode == "overall":
         prompt = f"""

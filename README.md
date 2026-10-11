@@ -19,12 +19,19 @@ A professional ATS (Applicant Tracking System) resume checker built with Flask a
 pip install -r requirements.txt
 \`\`\`
 
-2. Run the application:
+2. Set your Gemini API key in the environment:
+\`\`\`bash
+export GEMINI_API_KEY="your-gemini-api-key"
+\`\`\`
+
+On Windows PowerShell, use `\$env:GEMINI_API_KEY="your-gemini-api-key"` instead.
+
+3. Run the application:
 \`\`\`bash
 python app.py
 \`\`\`
 
-3. Open http://localhost:5000 in your browser
+4. Open http://localhost:5000 in your browser
 
 ## How it Works
 
@@ -39,6 +46,6 @@ python app.py
 ## Technical Details
 
 - **Backend:** Flask with PyPDF2 for reliable PDF text extraction
-- **AI:** Google Gemini 1.5 Flash for intelligent resume analysis
+- **AI:** Google Gemini 2.5 Flash for intelligent resume analysis
 - **Frontend:** HTML/CSS/JavaScript with Tailwind CSS
 - **No dummy data:** All scores and suggestions come directly from AI analysis
