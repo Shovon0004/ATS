@@ -103,15 +103,19 @@ def analyze_with_groq(resume_text, mode="overall", job_description=""):
                 {"role": "user", "content": prompt}
             ],
             "temperature": 0.2,
-            "max_tokens": 1200,
-            "response_format": {"type": "json_object"}
+            "max_completion_tokens": 1200
         }
         response = requests.post(GROQ_API_URL, headers=headers, json=data, timeout=30)
         if response.status_code != 200:
             print(f"Groq API error: {response.status_code} - {response.text[:1000]}")
+            try:
+                error_detail = response.json().get("error", {}).get("message", "")
+            except ValueError:
+                error_detail = ""
+            detail_suffix = f" {error_detail}" if error_detail else ""
             raise AIAnalysisError(
                 f"Groq API request failed ({response.status_code}) for model "
-                f"{GROQ_MODEL}. Check GROQ_API_KEY and model configuration."
+                f"{GROQ_MODEL}.{detail_suffix}"
             )
 
         try:
