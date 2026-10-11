@@ -46,6 +46,6 @@ python app.py
 ## Technical Details
 
 - **Backend:** Flask with PyPDF2 for reliable PDF text extraction
-- **AI:** Groq `llama-3.3-70b-versatile` for intelligent resume analysis
+- **AI:** Groq `llama-3.1-8b-instant` for intelligent resume analysis
 - **Frontend:** HTML/CSS/JavaScript with Tailwind CSS
 - **No dummy data:** All scores and suggestions come directly from AI analysis
