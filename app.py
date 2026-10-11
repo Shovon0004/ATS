@@ -127,14 +127,19 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
             print(f"Gemini returned an empty response: {result}")
             return None
 
-        # Keep parsing tolerant of models that wrap otherwise valid JSON in Markdown.
-        json_start = text_response.find('{')
-        json_end = text_response.rfind('}') + 1
-        if json_start == -1 or json_end <= json_start:
-            print(f"Gemini returned non-JSON analysis: {text_response[:1000]}")
-            return None
+        # Parse the first complete JSON object, allowing Markdown fences or trailing text.
+        decoder = json.JSONDecoder()
+        for json_start, character in enumerate(text_response):
+            if character != '{':
+                continue
+            try:
+                analysis, _ = decoder.raw_decode(text_response[json_start:])
+                return analysis
+            except json.JSONDecodeError:
+                continue
 
-        return json.loads(text_response[json_start:json_end])
+        print(f"Gemini returned non-JSON analysis: {text_response[:1000]}")
+        return None
             
     except Exception as e:
         print(f"Gemini analysis error: {e}")
