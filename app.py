@@ -110,7 +110,8 @@ def analyze_with_groq(resume_text, mode="overall", job_description=""):
         if response.status_code != 200:
             print(f"Groq API error: {response.status_code} - {response.text[:1000]}")
             raise AIAnalysisError(
-                f"Groq API request failed ({response.status_code}). Check GROQ_API_KEY and model configuration."
+                f"Groq API request failed ({response.status_code}) for model "
+                f"{GROQ_MODEL}. Check GROQ_API_KEY and model configuration."
             )
 
         try:
