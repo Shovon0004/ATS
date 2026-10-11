@@ -100,6 +100,7 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
                 "topK": 40,
                 "topP": 0.95,
                 "maxOutputTokens": 1024,
+                "responseMimeType": "application/json",
             }
         }
         
@@ -110,19 +111,30 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
             timeout=30
         )
         
-        if response.status_code == 200:
-            result = response.json()
-            text_response = result["candidates"][0]["content"]["parts"][0]["text"]
-            
-            # Extract JSON from response
-            json_start = text_response.find('{')
-            json_end = text_response.rfind('}') + 1
-            json_str = text_response[json_start:json_end]
-            
-            return json.loads(json_str)
-        else:
-            print(f"Gemini API error: {response.status_code} - {response.text}")
+        if response.status_code != 200:
+            print(f"Gemini API error: {response.status_code} - {response.text[:1000]}")
             return None
+
+        result = response.json()
+        candidates = result.get("candidates", [])
+        if not candidates:
+            print(f"Gemini returned no candidates: {result}")
+            return None
+
+        parts = candidates[0].get("content", {}).get("parts", [])
+        text_response = "".join(part.get("text", "") for part in parts).strip()
+        if not text_response:
+            print(f"Gemini returned an empty response: {result}")
+            return None
+
+        # Keep parsing tolerant of models that wrap otherwise valid JSON in Markdown.
+        json_start = text_response.find('{')
+        json_end = text_response.rfind('}') + 1
+        if json_start == -1 or json_end <= json_start:
+            print(f"Gemini returned non-JSON analysis: {text_response[:1000]}")
+            return None
+
+        return json.loads(text_response[json_start:json_end])
             
     except Exception as e:
         print(f"Gemini analysis error: {e}")

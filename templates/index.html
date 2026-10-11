@@ -509,7 +509,13 @@
                     body: formData
                 });
 
-                const result = await response.json();
+                const responseText = await response.text();
+                let result;
+                try {
+                    result = responseText ? JSON.parse(responseText) : {};
+                } catch (parseError) {
+                    result = { error: responseText || 'The server returned an empty response.' };
+                }
 
                 if (response.ok) {
                     displayResults(result);
@@ -518,7 +524,7 @@
                 }
             } catch (error) {
                 console.error('Analysis error:', error);
-                alert('Network error. Please try again.');
+                alert(error.message || 'Network error. Please try again.');
             } finally {
                 document.getElementById('loadingPanel').classList.add('hidden');
             }
