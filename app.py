@@ -184,13 +184,15 @@ def analyze_resume():
         analysis = analyze_with_gemini(resume_text, mode, job_description)
         
         if not analysis:
-            return jsonify({'error': 'Failed to analyze resume. Please try again.'}), 500
+            return jsonify({
+                'error': 'Gemini returned an empty or invalid analysis. Check the Render logs for the Gemini response.'
+            }), 502
         
         return jsonify(analysis)
         
     except Exception as e:
-        print(f"Analysis error: {e}")
-        return jsonify({'error': 'An error occurred during analysis'}), 500
+        app.logger.exception("Analysis error")
+        return jsonify({'error': f'Analysis failed: {e}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
