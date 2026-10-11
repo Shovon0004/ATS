@@ -15,11 +15,12 @@ CORS(app)
 
 # Configuration
 
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+GROQ_MODEL = "llama-3.3-70b-versatile"
 
-class GeminiAnalysisError(Exception):
-    """Raised when Gemini cannot produce a usable analysis."""
+class AIAnalysisError(Exception):
+    """Raised when the AI provider cannot produce a usable analysis."""
 
 
 def extract_text_from_pdf(pdf_file):
@@ -40,11 +41,11 @@ def extract_text_from_pdf(pdf_file):
         print(f"PDF extraction error: {e}")
         return None
 
-def analyze_with_gemini(resume_text, mode="overall", job_description=""):
-    """Analyze resume using Gemini AI"""
+def analyze_with_groq(resume_text, mode="overall", job_description=""):
+    """Analyze resume using Groq's OpenAI-compatible API."""
 
-    if not GEMINI_API_KEY:
-        raise GeminiAnalysisError("GEMINI_API_KEY is not configured on the server.")
+    if not GROQ_API_KEY:
+        raise AIAnalysisError("GROQ_API_KEY is not configured on the server.")
     
     if mode == "overall":
         prompt = f"""
@@ -92,111 +93,64 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
     
     try:
         headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
             "Content-Type": "application/json"
         }
-        
         data = {
-            "contents": [{
-                "parts": [{
-                    "text": prompt
-                }]
-            }],
-            "generationConfig": {
-                "temperature": 0.3,
-                "topK": 40,
-                "topP": 0.95,
-                "maxOutputTokens": 2048,
-                "responseMimeType": "application/json",
-                "responseSchema": {
-                    "type": "OBJECT",
-                    "properties": {
-                        "ats_score": {"type": "INTEGER"},
-                        "matched_keywords": {
-                            "type": "ARRAY",
-                            "items": {"type": "STRING"}
-                        },
-                        "missing_keywords": {
-                            "type": "ARRAY",
-                            "items": {"type": "STRING"}
-                        },
-                        "suggestions": {"type": "STRING"}
-                    },
-                    "required": [
-                        "ats_score",
-                        "matched_keywords",
-                        "missing_keywords",
-                        "suggestions"
-                    ]
-                }
-            }
+            "model": GROQ_MODEL,
+            "messages": [
+                {"role": "system", "content": "You are an ATS resume analyst. Return only valid JSON."},
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.2,
+            "max_tokens": 1200,
+            "response_format": {"type": "json_object"}
         }
-        
-        response = requests.post(
-            f"{GEMINI_API_URL}?key={GEMINI_API_KEY}",
-            headers=headers,
-            json=data,
-            timeout=30
-        )
-        
+        response = requests.post(GROQ_API_URL, headers=headers, json=data, timeout=30)
         if response.status_code != 200:
-            print(f"Gemini API error: {response.status_code} - {response.text[:1000]}")
-            raise GeminiAnalysisError(
-                f"Gemini API request failed ({response.status_code}). Check the API key and model configuration."
+            print(f"Groq API error: {response.status_code} - {response.text[:1000]}")
+            raise AIAnalysisError(
+                f"Groq API request failed ({response.status_code}). Check GROQ_API_KEY and model configuration."
             )
 
         try:
             result = response.json()
         except ValueError as error:
-            raise GeminiAnalysisError("Gemini returned an invalid API response.") from error
+            raise AIAnalysisError("Groq returned an invalid API response.") from error
 
-        candidates = result.get("candidates", [])
-        if not candidates:
-            print(f"Gemini returned no candidates: {result}")
-            raise GeminiAnalysisError("Gemini returned no analysis candidates.")
+        choices = result.get("choices", [])
+        if not choices:
+            print(f"Groq returned no choices: {result}")
+            raise AIAnalysisError("Groq returned no analysis choices.")
 
-        parts = candidates[0].get("content", {}).get("parts", [])
-        text_response = "".join(part.get("text", "") for part in parts).strip()
+        text_response = (choices[0].get("message", {}).get("content") or "").strip()
+        finish_reason = choices[0].get("finish_reason", "unknown")
         if not text_response:
-            print(f"Gemini returned an empty response: {result}")
-            raise GeminiAnalysisError("Gemini returned an empty response.")
+            raise AIAnalysisError("Groq returned an empty response.")
 
-        # Parse the first complete JSON object, allowing Markdown fences or trailing text.
         decoder = json.JSONDecoder()
         for json_start, character in enumerate(text_response):
             if character != '{':
                 continue
             try:
                 analysis, _ = decoder.raw_decode(text_response[json_start:])
-                required_fields = {
-                    "ats_score",
-                    "matched_keywords",
-                    "missing_keywords",
-                    "suggestions"
-                }
+                required_fields = {"ats_score", "matched_keywords", "missing_keywords", "suggestions"}
                 if required_fields.issubset(analysis):
                     return analysis
-                print(f"Gemini analysis is missing fields: {analysis}")
-                raise GeminiAnalysisError("Gemini analysis was missing required fields.")
+                raise AIAnalysisError("Groq analysis was missing required fields.")
             except json.JSONDecodeError:
                 continue
 
-        finish_reason = candidates[0].get("finishReason", "unknown")
-        print(
-            f"Gemini returned non-JSON analysis (finish reason: {finish_reason}): "
-            f"{text_response[:1000]}"
-        )
-        raise GeminiAnalysisError(
-            f"Gemini returned invalid JSON (finish reason: {finish_reason})."
-        )
-            
-    except GeminiAnalysisError:
+        print(f"Groq returned invalid JSON (finish reason: {finish_reason}): {text_response[:1000]}")
+        raise AIAnalysisError(f"Groq returned invalid JSON (finish reason: {finish_reason}).")
+    except AIAnalysisError:
         raise
-    except requests.RequestException as e:
-        print(f"Gemini request error: {e}")
-        raise GeminiAnalysisError("Could not connect to the Gemini API.") from e
-    except Exception as e:
-        print(f"Gemini analysis error: {e}")
-        raise GeminiAnalysisError("Unexpected Gemini analysis error.") from e
+    except requests.RequestException as error:
+        print(f"Groq request error: {error}")
+        raise AIAnalysisError("Could not connect to the Groq API.") from error
+    except Exception as error:
+        print(f"Groq analysis error: {error}")
+        raise AIAnalysisError("Unexpected Groq analysis error.") from error
 
 @app.route('/')
 def index():
@@ -226,12 +180,12 @@ def analyze_resume():
         print(f"Extracted text length: {len(resume_text)}")
         print(f"Text preview: {resume_text[:200]}...")
         
-        # Analyze with Gemini
-        analysis = analyze_with_gemini(resume_text, mode, job_description)
+        # Analyze with Groq
+        analysis = analyze_with_groq(resume_text, mode, job_description)
         
         return jsonify(analysis)
         
-    except GeminiAnalysisError as e:
+    except AIAnalysisError as e:
         return jsonify({'error': str(e)}), 502
     except Exception as e:
         app.logger.exception("Analysis error")

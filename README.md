@@ -1,6 +1,6 @@
 # ATS Resume Checker - Flask Version
 
-A professional ATS (Applicant Tracking System) resume checker built with Flask and powered by Google's Gemini AI.
+A professional ATS (Applicant Tracking System) resume checker built with Flask and powered by Groq AI.
 
 ## Features
 
@@ -9,7 +9,7 @@ A professional ATS (Applicant Tracking System) resume checker built with Flask a
   - Job-Specific Check: Targeted analysis against job descriptions
 
 - **Real PDF Text Extraction:** Uses PyPDF2 for reliable text extraction
-- **AI-Powered Analysis:** Google Gemini AI provides accurate scoring and suggestions
+- **AI-Powered Analysis:** Groq AI provides accurate scoring and suggestions
 - **Professional UI:** Clean, responsive design similar to Enhancv
 
 ## Setup
@@ -19,12 +19,12 @@ A professional ATS (Applicant Tracking System) resume checker built with Flask a
 pip install -r requirements.txt
 \`\`\`
 
-2. Set your Gemini API key in the environment:
+2. Set your Groq API key in the environment:
 \`\`\`bash
-export GEMINI_API_KEY="your-gemini-api-key"
+export GROQ_API_KEY="your-groq-api-key"
 \`\`\`
 
-On Windows PowerShell, use `\$env:GEMINI_API_KEY="your-gemini-api-key"` instead.
+On Windows PowerShell, use `\$env:GROQ_API_KEY="your-groq-api-key"` instead.
 
 3. Run the application:
 \`\`\`bash
@@ -46,6 +46,6 @@ python app.py
 ## Technical Details
 
 - **Backend:** Flask with PyPDF2 for reliable PDF text extraction
-- **AI:** Google Gemini 2.5 Flash for intelligent resume analysis
+- **AI:** Groq `llama-3.3-70b-versatile` for intelligent resume analysis
 - **Frontend:** HTML/CSS/JavaScript with Tailwind CSS
 - **No dummy data:** All scores and suggestions come directly from AI analysis
