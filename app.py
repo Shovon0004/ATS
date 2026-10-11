@@ -18,6 +18,10 @@ CORS(app)
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
+class GeminiAnalysisError(Exception):
+    """Raised when Gemini cannot produce a usable analysis."""
+
+
 def extract_text_from_pdf(pdf_file):
     """Extract text from PDF using PyPDF2"""
     try:
@@ -40,8 +44,7 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
     """Analyze resume using Gemini AI"""
 
     if not GEMINI_API_KEY:
-        print("Gemini API key is not configured. Set the GEMINI_API_KEY environment variable.")
-        return None
+        raise GeminiAnalysisError("GEMINI_API_KEY is not configured on the server.")
     
     if mode == "overall":
         prompt = f"""
@@ -137,19 +140,25 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
         
         if response.status_code != 200:
             print(f"Gemini API error: {response.status_code} - {response.text[:1000]}")
-            return None
+            raise GeminiAnalysisError(
+                f"Gemini API request failed ({response.status_code}). Check the API key and model configuration."
+            )
 
-        result = response.json()
+        try:
+            result = response.json()
+        except ValueError as error:
+            raise GeminiAnalysisError("Gemini returned an invalid API response.") from error
+
         candidates = result.get("candidates", [])
         if not candidates:
             print(f"Gemini returned no candidates: {result}")
-            return None
+            raise GeminiAnalysisError("Gemini returned no analysis candidates.")
 
         parts = candidates[0].get("content", {}).get("parts", [])
         text_response = "".join(part.get("text", "") for part in parts).strip()
         if not text_response:
             print(f"Gemini returned an empty response: {result}")
-            return None
+            raise GeminiAnalysisError("Gemini returned an empty response.")
 
         # Parse the first complete JSON object, allowing Markdown fences or trailing text.
         decoder = json.JSONDecoder()
@@ -167,7 +176,7 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
                 if required_fields.issubset(analysis):
                     return analysis
                 print(f"Gemini analysis is missing fields: {analysis}")
-                return None
+                raise GeminiAnalysisError("Gemini analysis was missing required fields.")
             except json.JSONDecodeError:
                 continue
 
@@ -176,11 +185,18 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
             f"Gemini returned non-JSON analysis (finish reason: {finish_reason}): "
             f"{text_response[:1000]}"
         )
-        return None
+        raise GeminiAnalysisError(
+            f"Gemini returned invalid JSON (finish reason: {finish_reason})."
+        )
             
+    except GeminiAnalysisError:
+        raise
+    except requests.RequestException as e:
+        print(f"Gemini request error: {e}")
+        raise GeminiAnalysisError("Could not connect to the Gemini API.") from e
     except Exception as e:
         print(f"Gemini analysis error: {e}")
-        return None
+        raise GeminiAnalysisError("Unexpected Gemini analysis error.") from e
 
 @app.route('/')
 def index():
@@ -213,13 +229,10 @@ def analyze_resume():
         # Analyze with Gemini
         analysis = analyze_with_gemini(resume_text, mode, job_description)
         
-        if not analysis:
-            return jsonify({
-                'error': 'Gemini returned an empty or invalid analysis. Check the Render logs for the Gemini response.'
-            }), 502
-        
         return jsonify(analysis)
         
+    except GeminiAnalysisError as e:
+        return jsonify({'error': str(e)}), 502
     except Exception as e:
         app.logger.exception("Analysis error")
         return jsonify({'error': f'Analysis failed: {e}'}), 500
