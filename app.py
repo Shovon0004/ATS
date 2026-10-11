@@ -104,6 +104,27 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
                 "topP": 0.95,
                 "maxOutputTokens": 2048,
                 "responseMimeType": "application/json",
+                "responseSchema": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "ats_score": {"type": "INTEGER"},
+                        "matched_keywords": {
+                            "type": "ARRAY",
+                            "items": {"type": "STRING"}
+                        },
+                        "missing_keywords": {
+                            "type": "ARRAY",
+                            "items": {"type": "STRING"}
+                        },
+                        "suggestions": {"type": "STRING"}
+                    },
+                    "required": [
+                        "ats_score",
+                        "matched_keywords",
+                        "missing_keywords",
+                        "suggestions"
+                    ]
+                }
             }
         }
         
@@ -137,7 +158,16 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
                 continue
             try:
                 analysis, _ = decoder.raw_decode(text_response[json_start:])
-                return analysis
+                required_fields = {
+                    "ats_score",
+                    "matched_keywords",
+                    "missing_keywords",
+                    "suggestions"
+                }
+                if required_fields.issubset(analysis):
+                    return analysis
+                print(f"Gemini analysis is missing fields: {analysis}")
+                return None
             except json.JSONDecodeError:
                 continue
 
