@@ -103,7 +103,8 @@ def analyze_with_groq(resume_text, mode="overall", job_description=""):
                 {"role": "user", "content": prompt}
             ],
             "temperature": 0.2,
-            "max_completion_tokens": 1200
+            "max_completion_tokens": 4096,
+            "reasoning_effort": "low"
         }
         response = requests.post(GROQ_API_URL, headers=headers, json=data, timeout=30)
         if response.status_code != 200:
@@ -131,7 +132,11 @@ def analyze_with_groq(resume_text, mode="overall", job_description=""):
         text_response = (choices[0].get("message", {}).get("content") or "").strip()
         finish_reason = choices[0].get("finish_reason", "unknown")
         if not text_response:
-            raise AIAnalysisError("Groq returned an empty response.")
+            message = choices[0].get("message", {})
+            print(f"Groq returned no content: finish_reason={finish_reason}, message={message}")
+            raise AIAnalysisError(
+                f"Groq returned an empty response (finish reason: {finish_reason})."
+            )
 
         decoder = json.JSONDecoder()
         for json_start, character in enumerate(text_response):
