@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Configuration
-GEMINI_API_KEY = "AIzaSyAMTm-yRu49bFe5vb_OXoE9sI_HEHNCg0g"
+
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
 def extract_text_from_pdf(pdf_file):
