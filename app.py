@@ -5,7 +5,10 @@ import io
 import requests
 import json
 import os
+from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
@@ -52,7 +55,7 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
         Resume text:
         {resume_text}
         
-        Return your analysis in this exact JSON format:
+        Return only valid JSON in this exact format, with no Markdown or extra text:
         {{
             "ats_score": <number between 30-95>,
             "matched_keywords": [<array of keywords found in resume>],
@@ -75,7 +78,7 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
         Resume text:
         {resume_text}
         
-        Return your analysis in this exact JSON format:
+        Return only valid JSON in this exact format, with no Markdown or extra text:
         {{
             "ats_score": <number between 30-95>,
             "matched_keywords": [<array of keywords from job description found in resume>],
@@ -99,7 +102,7 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
                 "temperature": 0.3,
                 "topK": 40,
                 "topP": 0.95,
-                "maxOutputTokens": 1024,
+                "maxOutputTokens": 2048,
                 "responseMimeType": "application/json",
             }
         }
@@ -138,7 +141,11 @@ def analyze_with_gemini(resume_text, mode="overall", job_description=""):
             except json.JSONDecodeError:
                 continue
 
-        print(f"Gemini returned non-JSON analysis: {text_response[:1000]}")
+        finish_reason = candidates[0].get("finishReason", "unknown")
+        print(
+            f"Gemini returned non-JSON analysis (finish reason: {finish_reason}): "
+            f"{text_response[:1000]}"
+        )
         return None
             
     except Exception as e:
